@@ -1,9 +1,9 @@
 import React, { useEffect } from 'react';
-import '../styles/UserTable.css'; 
+import '../styles/UserTable.css';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../redux/store';
 import { loadUsers, setFilter } from '../redux/userSlice';
-import { Filters } from '../redux/userSlice'; 
+import { Filters } from '../redux/userSlice';
 
 const UserTable: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -67,7 +67,7 @@ const UserTable: React.FC = () => {
           onChange={handleFilterChange}
         />
       </div>
-      
+
       <table>
         <thead>
           <tr>
