@@ -1,0 +1,30 @@
+.add-user {
+  margin-bottom: 24px;
+  padding: 16px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.add-user-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 20px;
+}
+
+.add-user label {
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+.add-user input[aria-invalid="true"] { border-color: #b42318; }
+.add-user .field-error { margin: 0 0 8px; color: #b42318; }
+.add-user button { padding: 8px 16px; cursor: pointer; }
+.add-user input:focus-visible, .add-user button:focus-visible {
+  outline: 2px solid #155eef;
+  outline-offset: 2px;
+}
+
+@media screen and (max-width: 600px) {
+  .add-user-fields { grid-template-columns: 1fr; }
+}
