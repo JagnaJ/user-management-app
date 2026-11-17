@@ -18,9 +18,21 @@ Acceptance criteria:
 
 This milestone deliberately leaves the list empty; it does not claim that the user-management UI is finished.
 
-## Next milestone — Manage a local list
+## UMA-002 — Add a local user
 
-Add user creation, editing, and deletion. Before implementing, define validation and duplicate rules, deletion confirmation, and whether the list should survive a page reload. These details were not recovered from the earlier plan and are not yet decisions.
+Branch: `feature/UMA-002-add-user`.
+
+- Require name, username, email, and phone; trim surrounding whitespace.
+- Check basic email format and case-insensitive uniqueness of username/email.
+- Allow international phone formats without a country-specific pattern.
+- Assign a local numeric ID and append the user to Redux state.
+- Clear form and filters after success so the new row is visible.
+- Show accessible inline errors and focus the first invalid field.
+- Clearly state that data is lost on reload; persistence is a separate feature.
+
+## Next milestones
+
+Add editing and deletion, defining deletion confirmation and the editing interaction. Decide whether and how to persist data across reloads.
 
 ## Later milestone — CSV import/export
 
