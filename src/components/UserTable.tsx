@@ -1,17 +1,13 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import '../styles/UserTable.css';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../redux/store';
-import { loadUsers, setFilter } from '../redux/userSlice';
+import { setFilter } from '../redux/userSlice';
 import { Filters } from '../redux/userSlice';
 
 const UserTable: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const { users, filters, status, error } = useSelector((state: RootState) => state.users);
-
-  useEffect(() => {
-    dispatch(loadUsers());
-  }, [dispatch]);
+  const { users, filters } = useSelector((state: RootState) => state.users);
 
   const isFilterKey = (key: string): key is keyof Filters => {
     return ['name', 'username', 'email', 'phone'].includes(key as keyof Filters);
@@ -32,15 +28,13 @@ const UserTable: React.FC = () => {
     (filters.phone === '' || user.phone.toLowerCase().includes(filters.phone.toLowerCase()))
   );
 
-  if (status === 'loading') return <p>Loading...</p>;
-  if (status === 'failed') return <p>{error}</p>;
-
   return (
     <div>
       <div className="filter-inputs">
         <input
           type="text"
           name="name"
+          aria-label="Filter by name"
           placeholder="Filter by name"
           value={filters.name}
           onChange={handleFilterChange}
@@ -48,6 +42,7 @@ const UserTable: React.FC = () => {
         <input
           type="text"
           name="username"
+          aria-label="Filter by username"
           placeholder="Filter by username"
           value={filters.username}
           onChange={handleFilterChange}
@@ -55,6 +50,7 @@ const UserTable: React.FC = () => {
         <input
           type="text"
           name="email"
+          aria-label="Filter by email"
           placeholder="Filter by email"
           value={filters.email}
           onChange={handleFilterChange}
@@ -62,6 +58,7 @@ const UserTable: React.FC = () => {
         <input
           type="text"
           name="phone"
+          aria-label="Filter by phone"
           placeholder="Filter by phone"
           value={filters.phone}
           onChange={handleFilterChange}
@@ -78,6 +75,13 @@ const UserTable: React.FC = () => {
           </tr>
         </thead>
         <tbody>
+          {filteredUsers.length === 0 && (
+            <tr>
+              <td colSpan={4}>
+                {users.length === 0 ? "No users yet." : "No users match your filters."}
+              </td>
+            </tr>
+          )}
           {filteredUsers.map(user => (
             <tr key={user.id}>
               <td>{user.name}</td>
