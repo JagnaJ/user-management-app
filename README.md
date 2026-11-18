@@ -8,7 +8,7 @@ Create users with the Add user form and filter the local list by name, username,
 
 All four fields are required and trimmed. Email must have a valid basic format; username and email must be unique, ignoring case. Phone is required but not restricted to one country's format. IDs are assigned locally. After a successful addition, the form and table filters are cleared so the new row is visible.
 
-Errors are displayed next to the fields and focus moves to the first invalid input. Successful additions are announced with a status message.
+Errors are displayed next to the fields and focus moves to the first invalid input. Successful additions and updates share one status message: `User added` or `User updated`. The latest action replaces the previous message and starts a fresh four-second dismissal timer.
 
 Use Edit beside a row to open a prefilled form. Save changes validates and updates the same record; Cancel discards the draft. The user keeps their ID and position in the list. Username/email checks exclude the record being edited. Filters remain unchanged after editing, so an updated row may no longer match them. Only one edit form can be open at a time.
 

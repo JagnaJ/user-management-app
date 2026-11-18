@@ -1,7 +1,7 @@
 import React from 'react';
 import { configureStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import App from './App';
 import userReducer from './redux/userSlice';
 import { User } from './types';
@@ -143,4 +143,45 @@ test('editing rejects duplicates and invalid fields, and preserves filters after
   expect(store.getState().users.filters.name).toBe('Alice');
   expect(store.getState().users.users[0].name).toBe('Carol');
   expect(screen.getByText('No users match your filters.')).toBeInTheDocument();
+});
+
+
+test('uses one latest-action notification and resets its dismissal timer', () => {
+  jest.useFakeTimers();
+  try {
+    renderApp();
+    fillUser();
+    fireEvent.click(screen.getByRole('button', { name: 'Add user' }));
+    expect(screen.getAllByRole('status')).toHaveLength(1);
+    expect(screen.getByRole('status')).toHaveTextContent(/^User added$/);
+    act(() => { jest.advanceTimersByTime(3000); });
+    fireEvent.click(screen.getByRole('button', { name: 'Edit Alice Smith' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Save changes' }));
+    expect(screen.getByRole('status')).toHaveTextContent(/^User updated$/);
+    expect(screen.queryByText('User added')).not.toBeInTheDocument();
+    act(() => { jest.advanceTimersByTime(1000); });
+    expect(screen.getByRole('status')).toHaveTextContent('User updated');
+    act(() => { jest.advanceTimersByTime(3000); });
+    expect(screen.getByRole('status')).toBeEmptyDOMElement();
+  } finally {
+    jest.useRealTimers();
+  }
+});
+
+test('repeating the same action gets a full notification timeout', () => {
+  jest.useFakeTimers();
+  try {
+    renderApp();
+    fillUser();
+    fireEvent.click(screen.getByRole('button', { name: 'Add user' }));
+    act(() => { jest.advanceTimersByTime(3000); });
+    fillUser({ Name: 'Bob', Username: 'bob', Email: 'bob@example.com', Phone: '456' });
+    fireEvent.click(screen.getByRole('button', { name: 'Add user' }));
+    act(() => { jest.advanceTimersByTime(1000); });
+    expect(screen.getByRole('status')).toHaveTextContent(/^User added$/);
+    act(() => { jest.advanceTimersByTime(3000); });
+    expect(screen.getByRole('status')).toBeEmptyDOMElement();
+  } finally {
+    jest.useRealTimers();
+  }
 });

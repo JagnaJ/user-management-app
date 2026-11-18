@@ -6,9 +6,8 @@ import { RootState, AppDispatch } from '../redux/store';
 import { setFilter } from '../redux/userSlice';
 import { Filters } from '../redux/userSlice';
 
-const UserTable: React.FC = () => {
+const UserTable: React.FC<{ onUpdated: () => void }> = ({ onUpdated }) => {
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [message, setMessage] = useState('');
   const table = useRef<HTMLTableElement>(null);
   const dispatch = useDispatch<AppDispatch>();
   const { users, filters } = useSelector((state: RootState) => state.users);
@@ -77,11 +76,10 @@ const UserTable: React.FC = () => {
 
       {editingUser && (
         <UserForm key={editingUser.id} user={editingUser}
-          onSaved={name => { setMessage(`${name} updated. Your table filters are unchanged.`); closeEditor(); }}
+          onSaved={() => { onUpdated(); closeEditor(); }}
           onCancel={closeEditor}
         />
       )}
-      <p role="status" aria-live="polite">{message}</p>
       <table ref={table} tabIndex={-1} aria-label="Users">
         <thead>
           <tr>
@@ -108,7 +106,7 @@ const UserTable: React.FC = () => {
               <td>{user.phone}</td>
               <td>
                 <button type="button" aria-label={`Edit ${user.name}`} disabled={editingId !== null}
-                  onClick={() => { setEditingId(user.id); setMessage(''); }}>
+                  onClick={() => { setEditingId(user.id); }}>
                   Edit
                 </button>
               </td>

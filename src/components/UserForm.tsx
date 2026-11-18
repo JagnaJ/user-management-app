@@ -10,7 +10,7 @@ const labels: Record<keyof UserDraft, string> = { name: 'Name', username: 'Usern
 
 interface UserFormProps {
   user?: User;
-  onSaved?: (name: string) => void;
+  onSaved?: () => void;
   onCancel?: () => void;
 }
 
@@ -19,7 +19,6 @@ export default function UserForm({ user, onSaved, onCancel }: UserFormProps) {
   const users = useSelector((state: RootState) => state.users.users);
   const [draft, setDraft] = useState<UserDraft>(user ? normalizeUser(user) : emptyDraft);
   const [submitted, setSubmitted] = useState(false);
-  const [message, setMessage] = useState('');
   const fields = useRef<Partial<Record<keyof UserDraft, HTMLInputElement | null>>>({});
   const prefix = user ? `edit-${user.id}` : 'add';
   const otherUsers = users.filter(existing => existing.id !== user?.id);
@@ -32,7 +31,6 @@ export default function UserForm({ user, onSaved, onCancel }: UserFormProps) {
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSubmitted(true);
-    setMessage('');
     const nextErrors = validateUser(draft, otherUsers);
     const firstError = userFields.find(field => nextErrors[field]);
     if (firstError) {
@@ -42,13 +40,13 @@ export default function UserForm({ user, onSaved, onCancel }: UserFormProps) {
     const normalized = normalizeUser(draft);
     if (user) {
       dispatch(updateUser({ id: user.id, ...normalized }));
-      onSaved?.(normalized.name);
+      onSaved?.();
       return;
     }
     dispatch(addUser(normalized));
     setDraft({ ...emptyDraft });
     setSubmitted(false);
-    setMessage(`${normalized.name} added. Table filters have been cleared.`);
+    onSaved?.();
     fields.current.name?.focus();
   };
 
@@ -72,7 +70,6 @@ export default function UserForm({ user, onSaved, onCancel }: UserFormProps) {
                 aria-describedby={errors[field] ? `${prefix}-${field}-error` : undefined}
                 onChange={event => {
                   setDraft({ ...draft, [field]: event.target.value });
-                  setMessage('');
                 }}
               />
               {errors[field] && <p className="field-error" id={`${prefix}-${field}-error`}>{errors[field]}</p>}
@@ -81,7 +78,6 @@ export default function UserForm({ user, onSaved, onCancel }: UserFormProps) {
         </div>
         <button type="submit">{user ? 'Save changes' : 'Add user'}</button>
         {user && <button type="button" onClick={onCancel}>Cancel</button>}
-        <p role="status" aria-live="polite">{message}</p>
       </form>
     </section>
   );
