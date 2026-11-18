@@ -35,11 +35,19 @@ const userSlice = createSlice({
       state.users.push({ id, ...draft });
       state.filters = { name: '', username: '', email: '', phone: '' };
     },
+    updateUser: (state, action: PayloadAction<User>) => {
+      const index = state.users.findIndex(user => user.id === action.payload.id);
+      if (index === -1) return;
+      const draft = normalizeUser(action.payload);
+      const others = state.users.filter(user => user.id !== action.payload.id);
+      if (Object.keys(validateUser(draft, others)).length > 0) return;
+      state.users[index] = { id: action.payload.id, ...draft };
+    },
     setFilter: (state, action: PayloadAction<{ key: keyof Filters; value: string }>) => {
       state.filters[action.payload.key] = action.payload.value;
     },
   },
 });
 
-export const { setFilter, addUser } = userSlice.actions;
+export const { setFilter, addUser, updateUser } = userSlice.actions;
 export default userSlice.reducer;

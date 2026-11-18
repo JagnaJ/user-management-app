@@ -30,9 +30,22 @@ Branch: `feature/UMA-002-add-user`.
 - Show accessible inline errors and focus the first invalid field.
 - Clearly state that data is lost on reload; persistence is a separate feature.
 
+## UMA-003 — Edit a local user
+
+Branch: `feature/UMA-003-edit-user`.
+
+- Open a prefilled form using Edit in the Actions column.
+- Share fields and validation with the add form.
+- Allow unchanged username/email; reject duplicates belonging to other users.
+- Save updates the existing record in place, retaining its ID.
+- Cancel discards the draft without modifying Redux state.
+- Keep filters unchanged; an edited row can stop matching the current filters.
+- Focus the name field when editing starts and the table when editing ends.
+- Keep one edit session open at a time. Data still resets on reload.
+
 ## Next milestones
 
-Add editing and deletion, defining deletion confirmation and the editing interaction. Decide whether and how to persist data across reloads.
+Add deletion with confirmation. Decide whether and how to persist data across reloads.
 
 ## Later milestone — CSV import/export
 
