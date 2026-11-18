@@ -1,7 +1,7 @@
 import React from 'react';
 import { configureStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import App from './App';
 import userReducer from './redux/userSlice';
 import { User } from './types';
@@ -91,4 +91,56 @@ test('blocks case-insensitive duplicates, then allows correction', () => {
   fillUser({ Name: 'Another', Username: 'another', Email: 'another@example.com', Phone: '123' });
   fireEvent.click(screen.getByRole('button', { name: 'Add user' }));
   expect(store.getState().users.users[1].id).toBe(8);
+});
+
+
+test('edits a user without changing their ID and allows unchanged unique fields', () => {
+  const { store } = renderApp([{ id: 8, name: 'Alice', username: 'alice', email: 'alice@example.com', phone: '123' }]);
+  fireEvent.click(screen.getByRole('button', { name: 'Edit Alice' }));
+  const editor = within(screen.getByRole('region', { name: 'Edit Alice' }));
+  expect(editor.getByRole('textbox', { name: 'Name', exact: true })).toHaveValue('Alice');
+  expect(editor.getByRole('textbox', { name: 'Name', exact: true })).toHaveFocus();
+  fireEvent.change(editor.getByRole('textbox', { name: 'Name', exact: true }), { target: { value: ' Alice Updated ' } });
+  fireEvent.click(editor.getByRole('button', { name: 'Save changes' }));
+  expect(store.getState().users.users).toEqual([{ id: 8, name: 'Alice Updated', username: 'alice', email: 'alice@example.com', phone: '123' }]);
+  expect(screen.queryByRole('button', { name: 'Save changes' })).not.toBeInTheDocument();
+  expect(screen.getByRole('table', { name: 'Users' })).toHaveFocus();
+});
+
+test('cancel discards edits and reopening uses original values', () => {
+  const original = { id: 1, name: 'Alice', username: 'alice', email: 'alice@example.com', phone: '123' };
+  const { store } = renderApp([original]);
+  fireEvent.click(screen.getByRole('button', { name: 'Edit Alice' }));
+  let editor = within(screen.getByRole('region', { name: 'Edit Alice' }));
+  fireEvent.change(editor.getByRole('textbox', { name: 'Name', exact: true }), { target: { value: 'Discard me' } });
+  fireEvent.click(editor.getByRole('button', { name: 'Cancel' }));
+  expect(store.getState().users.users).toEqual([original]);
+  fireEvent.click(screen.getByRole('button', { name: 'Edit Alice' }));
+  editor = within(screen.getByRole('region', { name: 'Edit Alice' }));
+  expect(editor.getByRole('textbox', { name: 'Name', exact: true })).toHaveValue('Alice');
+});
+
+test('editing rejects duplicates and invalid fields, and preserves filters after save', () => {
+  const { store } = renderApp([
+    { id: 1, name: 'Alice', username: 'alice', email: 'alice@example.com', phone: '123' },
+    { id: 2, name: 'Bob', username: 'bob', email: 'bob@example.com', phone: '456' },
+  ]);
+  fireEvent.change(screen.getByRole('textbox', { name: 'Filter by name' }), { target: { value: 'Alice' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Edit Alice' }));
+  const editor = within(screen.getByRole('region', { name: 'Edit Alice' }));
+  fireEvent.change(editor.getByRole('textbox', { name: 'Username', exact: true }), { target: { value: ' BOB ' } });
+  fireEvent.change(editor.getByRole('textbox', { name: 'Email', exact: true }), { target: { value: 'bad-email' } });
+  fireEvent.click(editor.getByRole('button', { name: 'Save changes' }));
+  expect(editor.getByText('This username is already in use.')).toBeInTheDocument();
+  expect(editor.getByText('Enter a valid email address.')).toBeInTheDocument();
+  expect(store.getState().users.users[0].username).toBe('alice');
+  fireEvent.change(editor.getByRole('textbox', { name: 'Username', exact: true }), { target: { value: 'alice' } });
+  fireEvent.change(editor.getByRole('textbox', { name: 'Email', exact: true }), { target: { value: 'BOB@example.com' } });
+  expect(editor.getByText('This email is already in use.')).toBeInTheDocument();
+  fireEvent.change(editor.getByRole('textbox', { name: 'Email', exact: true }), { target: { value: 'alice@example.com' } });
+  fireEvent.change(editor.getByRole('textbox', { name: 'Name', exact: true }), { target: { value: 'Carol' } });
+  fireEvent.click(editor.getByRole('button', { name: 'Save changes' }));
+  expect(store.getState().users.filters.name).toBe('Alice');
+  expect(store.getState().users.users[0].name).toBe('Carol');
+  expect(screen.getByText('No users match your filters.')).toBeInTheDocument();
 });

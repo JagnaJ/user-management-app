@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
+import UserForm from './UserForm';
 import '../styles/UserTable.css';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../redux/store';
@@ -6,6 +7,9 @@ import { setFilter } from '../redux/userSlice';
 import { Filters } from '../redux/userSlice';
 
 const UserTable: React.FC = () => {
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [message, setMessage] = useState('');
+  const table = useRef<HTMLTableElement>(null);
   const dispatch = useDispatch<AppDispatch>();
   const { users, filters } = useSelector((state: RootState) => state.users);
 
@@ -27,6 +31,12 @@ const UserTable: React.FC = () => {
     (filters.email === '' || user.email.toLowerCase().includes(filters.email.toLowerCase())) &&
     (filters.phone === '' || user.phone.toLowerCase().includes(filters.phone.toLowerCase()))
   );
+
+  const editingUser = users.find(user => user.id === editingId);
+  const closeEditor = () => {
+    setEditingId(null);
+    table.current?.focus();
+  };
 
   return (
     <div>
@@ -65,19 +75,27 @@ const UserTable: React.FC = () => {
         />
       </div>
 
-      <table>
+      {editingUser && (
+        <UserForm key={editingUser.id} user={editingUser}
+          onSaved={name => { setMessage(`${name} updated. Your table filters are unchanged.`); closeEditor(); }}
+          onCancel={closeEditor}
+        />
+      )}
+      <p role="status" aria-live="polite">{message}</p>
+      <table ref={table} tabIndex={-1} aria-label="Users">
         <thead>
           <tr>
             <th>Name</th>
             <th>Username</th>
             <th>Email</th>
             <th>Phone</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
           {filteredUsers.length === 0 && (
             <tr>
-              <td colSpan={4}>
+              <td colSpan={5}>
                 {users.length === 0 ? "No users yet." : "No users match your filters."}
               </td>
             </tr>
@@ -88,6 +106,12 @@ const UserTable: React.FC = () => {
               <td>{user.username}</td>
               <td>{user.email}</td>
               <td>{user.phone}</td>
+              <td>
+                <button type="button" aria-label={`Edit ${user.name}`} disabled={editingId !== null}
+                  onClick={() => { setEditingId(user.id); setMessage(''); }}>
+                  Edit
+                </button>
+              </td>
             </tr>
           ))}
         </tbody>

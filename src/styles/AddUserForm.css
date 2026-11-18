@@ -28,3 +28,5 @@
 @media screen and (max-width: 600px) {
   .add-user-fields { grid-template-columns: 1fr; }
 }
+
+.add-user button + button { margin-left: 8px; }
