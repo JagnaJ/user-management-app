@@ -43,9 +43,21 @@ Branch: `feature/UMA-003-edit-user`.
 - Focus the name field when editing starts and the table when editing ends.
 - Keep one edit session open at a time. Data still resets on reload.
 
-## Next milestones
+## UMA-004 — Delete a local user
 
-Add deletion with confirmation. Decide whether and how to persist data across reloads.
+Branch: `feature/UMA-004-delete-user`.
+
+- Show a Delete action on each row.
+- Use the native browser confirmation prompt with the user's name and email.
+- Cancel leaves the list and notification unchanged; confirmation removes only the selected ID.
+- Keep filters and remaining records unchanged; return focus to the table.
+- Show `User deleted` through the shared four-second notification.
+- Disable deletion while editing to avoid discarding an open draft.
+- No undo or persistence in this milestone.
+
+## Next milestone
+
+Persist the local user list across page reloads. Define storage validation and error handling before implementation.
 
 ## Later milestone — CSV import/export
 

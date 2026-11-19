@@ -3,14 +3,22 @@ import UserForm from './UserForm';
 import '../styles/UserTable.css';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../redux/store';
-import { setFilter } from '../redux/userSlice';
+import { User } from '../types';
+import { deleteUser, setFilter } from '../redux/userSlice';
 import { Filters } from '../redux/userSlice';
 
-const UserTable: React.FC<{ onUpdated: () => void }> = ({ onUpdated }) => {
+const UserTable: React.FC<{ onUpdated: () => void; onDeleted: () => void }> = ({ onUpdated, onDeleted }) => {
   const [editingId, setEditingId] = useState<number | null>(null);
   const table = useRef<HTMLTableElement>(null);
   const dispatch = useDispatch<AppDispatch>();
   const { users, filters } = useSelector((state: RootState) => state.users);
+
+  const handleDelete = (user: User) => {
+    if (!window.confirm(`Delete ${user.name} (${user.email})? This cannot be undone.`)) return;
+    dispatch(deleteUser(user.id));
+    onDeleted();
+    table.current?.focus();
+  };
 
   const isFilterKey = (key: string): key is keyof Filters => {
     return ['name', 'username', 'email', 'phone'].includes(key as keyof Filters);
@@ -108,6 +116,10 @@ const UserTable: React.FC<{ onUpdated: () => void }> = ({ onUpdated }) => {
                 <button type="button" aria-label={`Edit ${user.name}`} disabled={editingId !== null}
                   onClick={() => { setEditingId(user.id); }}>
                   Edit
+                </button>
+                <button type="button" className="delete-user" aria-label={`Delete ${user.name}`}
+                  disabled={editingId !== null} onClick={() => handleDelete(user)}>
+                  Delete
                 </button>
               </td>
             </tr>

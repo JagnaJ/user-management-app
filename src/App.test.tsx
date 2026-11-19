@@ -185,3 +185,57 @@ test('repeating the same action gets a full notification timeout', () => {
     jest.useRealTimers();
   }
 });
+
+
+test('canceling deletion keeps the user; confirming removes only the selected user', () => {
+  const confirm = jest.spyOn(window, 'confirm').mockReturnValue(false);
+  try {
+    const { store } = renderApp([
+      { id: 1, name: 'Alice', username: 'alice', email: 'alice@example.com', phone: '123' },
+      { id: 2, name: 'Bob', username: 'bob', email: 'bob@example.com', phone: '456' },
+    ]);
+    fireEvent.click(screen.getByRole('button', { name: 'Delete Alice' }));
+    expect(confirm).toHaveBeenCalledWith('Delete Alice (alice@example.com)? This cannot be undone.');
+    expect(store.getState().users.users).toHaveLength(2);
+    expect(screen.getByRole('status')).toBeEmptyDOMElement();
+    confirm.mockReturnValue(true);
+    fireEvent.click(screen.getByRole('button', { name: 'Delete Alice' }));
+    expect(store.getState().users.users.map(user => user.id)).toEqual([2]);
+    expect(screen.queryByRole('cell', { name: 'Alice' })).not.toBeInTheDocument();
+    expect(screen.getByRole('cell', { name: 'Bob' })).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent(/^User deleted$/);
+    expect(screen.getByRole('table', { name: 'Users' })).toHaveFocus();
+  } finally { confirm.mockRestore(); }
+});
+
+test('deleting the last filtered user preserves filters and dismisses the shared notice', () => {
+  jest.useFakeTimers();
+  const confirm = jest.spyOn(window, 'confirm').mockReturnValue(true);
+  try {
+    const { store } = renderApp();
+    fillUser();
+    fireEvent.click(screen.getByRole('button', { name: 'Add user' }));
+    fireEvent.change(screen.getByRole('textbox', { name: 'Filter by name' }), { target: { value: 'Alice' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Delete Alice Smith' }));
+    expect(store.getState().users.users).toEqual([]);
+    expect(store.getState().users.filters.name).toBe('Alice');
+    expect(screen.getByText('No users yet.')).toBeInTheDocument();
+    expect(screen.getAllByRole('status')).toHaveLength(1);
+    expect(screen.getByRole('status')).toHaveTextContent(/^User deleted$/);
+    act(() => { jest.advanceTimersByTime(4000); });
+    expect(screen.getByRole('status')).toBeEmptyDOMElement();
+  } finally { confirm.mockRestore(); jest.useRealTimers(); }
+});
+
+test('deletion is disabled during editing and available again after cancel', () => {
+  const confirm = jest.spyOn(window, 'confirm').mockReturnValue(true);
+  try {
+    renderApp([{ id: 1, name: 'Alice', username: 'alice', email: 'alice@example.com', phone: '123' }]);
+    fireEvent.click(screen.getByRole('button', { name: 'Edit Alice' }));
+    expect(screen.getByRole('button', { name: 'Delete Alice' })).toBeDisabled();
+    fireEvent.click(screen.getByRole('button', { name: 'Delete Alice' }));
+    expect(confirm).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(screen.getByRole('button', { name: 'Delete Alice' })).toBeEnabled();
+  } finally { confirm.mockRestore(); }
+});

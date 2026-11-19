@@ -43,11 +43,14 @@ const userSlice = createSlice({
       if (Object.keys(validateUser(draft, others)).length > 0) return;
       state.users[index] = { id: action.payload.id, ...draft };
     },
+    deleteUser: (state, action: PayloadAction<number>) => {
+      state.users = state.users.filter(user => user.id !== action.payload);
+    },
     setFilter: (state, action: PayloadAction<{ key: keyof Filters; value: string }>) => {
       state.filters[action.payload.key] = action.payload.value;
     },
   },
 });
 
-export const { setFilter, addUser, updateUser } = userSlice.actions;
+export const { setFilter, addUser, updateUser, deleteUser } = userSlice.actions;
 export default userSlice.reducer;
