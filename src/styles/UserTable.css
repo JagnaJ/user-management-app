@@ -56,3 +56,11 @@ input {
     flex-direction: column;
   }
 }
+.delete-user {
+  margin-left: 8px;
+  color: #b42318;
+}
+
+.delete-user:disabled {
+  color: #666;
+}

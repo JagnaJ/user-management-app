@@ -16,7 +16,10 @@ const App: React.FC = () => {
       <h1>User Management</h1>
       <AddUserForm onAdded={() => setNotice({ message: 'User added' })} />
       <p role="status" aria-live="polite" aria-atomic="true">{notice?.message}</p>
-      <UserTable onUpdated={() => setNotice({ message: 'User updated' })} />
+      <UserTable
+        onUpdated={() => setNotice({ message: 'User updated' })}
+        onDeleted={() => setNotice({ message: 'User deleted' })}
+      />
     </div>
   );
 };

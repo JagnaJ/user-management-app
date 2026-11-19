@@ -1,4 +1,4 @@
-import reducer, { addUser, updateUser } from './userSlice';
+import reducer, { addUser, updateUser, deleteUser } from './userSlice';
 
 test('rejects invalid and duplicate additions even when dispatched outside the form', () => {
   const valid = { name: 'Alice', username: 'alice', email: 'alice@example.com', phone: '123' };
@@ -21,4 +21,16 @@ test('update rejects missing IDs and invalid or duplicate data while preserving 
   expect(updated.users.map(user => user.id)).toEqual([1, 2]);
   expect(updated.users[0].name).toBe('Alice Updated');
   expect(updated.users[1]).toEqual(state.users[1]);
+});
+
+
+test('deletes only the specified ID and leaves filters and other records unchanged', () => {
+  const user = { name: 'Same name', username: 'one', email: 'one@example.com', phone: '123' };
+  const state = reducer(reducer(undefined, addUser(user)), addUser({ ...user, username: 'two', email: 'two@example.com' }));
+  const filtered = { ...state, filters: { ...state.filters, name: 'Same' } };
+  const deleted = reducer(filtered, deleteUser(1));
+  expect(deleted.users).toEqual([filtered.users[1]]);
+  expect(deleted.filters).toEqual(filtered.filters);
+  expect(reducer(deleted, deleteUser(999))).toEqual(deleted);
+  expect(reducer(deleted, deleteUser(2)).users).toEqual([]);
 });
