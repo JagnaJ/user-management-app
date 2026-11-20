@@ -1,8 +1,11 @@
+import { useSelector } from 'react-redux';
+import { RootState } from './redux/store';
 import React, { useEffect, useState } from 'react';
 import AddUserForm from './components/AddUserForm';
 import UserTable from './components/UserTable';
 
 const App: React.FC = () => {
+  const storageError = useSelector((state: RootState) => state.persistence?.error);
   const [notice, setNotice] = useState<{ message: string } | null>(null);
 
   useEffect(() => {
@@ -14,6 +17,7 @@ const App: React.FC = () => {
   return (
     <div className="App">
       <h1>User Management</h1>
+      {storageError && <p role="alert">{storageError}</p>}
       <AddUserForm onAdded={() => setNotice({ message: 'User added' })} />
       <p role="status" aria-live="polite" aria-atomic="true">{notice?.message}</p>
       <UserTable
