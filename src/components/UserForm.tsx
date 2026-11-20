@@ -53,7 +53,7 @@ export default function UserForm({ user, onSaved, onCancel }: UserFormProps) {
   return (
     <section aria-labelledby={`${prefix}-heading`} className="add-user">
       <h2 id={`${prefix}-heading`}>{user ? `Edit ${user.name}` : 'Add user'}</h2>
-      <p>All fields are required. Users are stored for this session and will be cleared when you reload the page.</p>
+      <p>All fields are required. Users are saved in this browser on this device. Clearing browser data removes them.</p>
       <form onSubmit={handleSubmit} noValidate>
         <div className="add-user-fields">
           {userFields.map(field => (

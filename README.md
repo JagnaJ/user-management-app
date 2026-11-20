@@ -2,7 +2,7 @@
 
 A React and TypeScript application for managing your own user list, with Redux Toolkit for local state.
 
-## Current status — UMA-004
+## Current status — UMA-005
 
 Create users with the Add user form and filter the local list by name, username, email, and phone. The app does not fetch demo records or require an API.
 
@@ -14,7 +14,9 @@ Use Edit beside a row to open a prefilled form. Save changes validates and updat
 
 Delete beside a row opens the browser confirmation prompt with the user’s name and email. Cancel keeps the record; confirming removes only that user. Filters stay unchanged, focus returns to the table, and the shared notice displays `User deleted` for four seconds. Deletion is disabled while an edit form is open. There is no undo.
 
-Persistence and CSV import/export are not implemented yet. Redux state is in memory and resets on reload; the form displays this limitation.
+Users are saved automatically in localStorage after adding, editing, or deleting and restored on reload. Only the user list is saved; filters and form drafts reset. Data stays in this browser on this device and is not synced or backed up. Clearing site data removes it.
+
+Stored records are validated before loading. Invalid or unsupported data is preserved, saving is paused for that session, and an alert is shown. If browser storage is unavailable or full, the app keeps working in memory and shows a persistent warning. Failed writes are retried on the next list change. CSV import/export is not implemented yet.
 
 ## Stack
 
@@ -52,9 +54,10 @@ The agreed direction is to let users manage their own list, then add CSV import/
 - [x] **UMA-002:** Add local users with validation and duplicate checks.
 - [x] **UMA-003:** Edit local users with validation, duplicate checks, and cancel.
 - [x] **UMA-004:** Delete local users after confirmation.
+- [x] **UMA-005:** Persist validated users in browser storage.
 - [ ] Add CSV import/export after the local management flow is ready.
 
-Persistence and CSV field rules still need to be specified before their implementation. See [docs/ROADMAP.md](docs/ROADMAP.md).
+CSV field rules still need to be specified before implementation. See [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## License
 

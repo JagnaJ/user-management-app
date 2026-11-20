@@ -55,9 +55,16 @@ Branch: `feature/UMA-004-delete-user`.
 - Disable deletion while editing to avoid discarding an open draft.
 - No undo or persistence in this milestone.
 
-## Next milestone
+## UMA-005 — Persist local users
 
-Persist the local user list across page reloads. Define storage validation and error handling before implementation.
+Branch: `feature/UMA-005-persist-users`.
+
+- Save the user list after changes under `user-management.users.v1`, with a versioned envelope.
+- Restore validated records and IDs on startup; do not persist filters or drafts.
+- Reject malformed records, duplicate IDs/usernames/emails, and unsupported versions as a whole.
+- Preserve invalid stored data and pause saving for that session, with an alert.
+- Keep CRUD usable when storage fails; warn about unsaved changes and retry writes on the next list change.
+- Data belongs to this browser/device; clearing site data removes it. No cross-tab or cross-device synchronization.
 
 ## Later milestone — CSV import/export
 
