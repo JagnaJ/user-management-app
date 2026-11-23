@@ -3,6 +3,7 @@ import { RootState } from './redux/store';
 import React, { useEffect, useState } from 'react';
 import AddUserForm from './components/AddUserForm';
 import UserTable from './components/UserTable';
+import ExportUsersButton from './components/ExportUsersButton';
 
 const App: React.FC = () => {
   const storageError = useSelector((state: RootState) => state.persistence?.error);
@@ -20,6 +21,7 @@ const App: React.FC = () => {
       {storageError && <p role="alert">{storageError}</p>}
       <AddUserForm onAdded={() => setNotice({ message: 'User added' })} />
       <p role="status" aria-live="polite" aria-atomic="true">{notice?.message}</p>
+      <ExportUsersButton />
       <UserTable
         onUpdated={() => setNotice({ message: 'User updated' })}
         onDeleted={() => setNotice({ message: 'User deleted' })}

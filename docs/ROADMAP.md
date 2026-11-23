@@ -66,9 +66,19 @@ Branch: `feature/UMA-005-persist-users`.
 - Keep CRUD usable when storage fails; warn about unsaved changes and retry writes on the next list change.
 - Data belongs to this browser/device; clearing site data removes it. No cross-tab or cross-device synchronization.
 
-## Later milestone — CSV import/export
+## UMA-006 — Export users to CSV
 
-After local management works, define CSV headers, encoding, invalid-row feedback, duplicate handling, and spreadsheet-formula safety. CSV is planned, not implemented.
+Branch: `feature/UMA-006-export-csv`.
+
+- Export all saved users regardless of filters; disable the button for an empty list.
+- Download `users.csv` with `name,username,email,phone` headers and no internal IDs.
+- Use UTF-8 BOM, comma delimiters, CRLF record separators, and quoted/escaped fields.
+- Prefix formula-like values and all phone numbers with an apostrophe; document that CSV readers may display it literally.
+- Keep the list, filters, and unsaved drafts unchanged; show an error if download initiation fails.
+
+## Next milestone — CSV import
+
+Define invalid-row feedback, duplicate handling, and how to handle the export's protective apostrophes before implementing import.
 
 ## Continuing from an existing Codespace
 
