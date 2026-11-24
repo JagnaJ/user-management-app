@@ -1,4 +1,4 @@
-import { parseCsv, readUserDrafts, validateImport } from './importUsers';
+import { parseCsv, readUserDrafts, validateImport, detectDelimiter, readCsvTable, mapUserDrafts, suggestMapping } from './importUsers';
 import { usersToCsv } from './exportUsers';
 import reducer, { importUsers, setFilter } from '../redux/userSlice';
 const draft = { name: 'Яна, "Jana"\nŁódź', username: 'jana', email: 'jana@example.com', phone: '+48 00123' };
@@ -31,5 +31,23 @@ test('imports atomically, assigns unique IDs and clears filters only on success'
   expect(reducer(state, importUsers([]))).toBe(state);
 });
 test('rejects a single quoted header field masquerading as four columns', () => {
-  expect(() => readUserDrafts('"name,username,email,phone"\na,b,c,d', false)).toThrow('Expected columns');
+  expect(() => readUserDrafts('"name,username,email,phone"\na,b,c,d', false)).toThrow('Check the delimiter');
+});
+
+
+test.each([',', ';', '\t'])('maps aliases and reordered columns with delimiter %s', separator => {
+  const text = ['Email Address', 'Company', 'Telephone', 'Login', 'Full Name'].join(separator) + '\n' + ['jana@example.com', 'Acme', '00123', 'jana', 'Jana'].join(separator);
+  expect(detectDelimiter(text)).toBe(separator);
+  expect(readUserDrafts(text, false)).toEqual([{ name: 'Jana', username: 'jana', email: 'jana@example.com', phone: '00123' }]);
+});
+test('maps unknown headers manually and rejects duplicate or missing targets', () => {
+  const table = readCsvTable('A,B,C,D,E\njana@example.com,00123,Jana,jana,ignored', ',');
+  expect(suggestMapping(table.header)).toEqual(['', '', '', '', '']);
+  expect(mapUserDrafts(table, ['email', 'phone', 'name', 'username', ''], false)[0].name).toBe('Jana');
+  expect(() => mapUserDrafts(table, ['email', 'phone', 'name', 'username', 'name'], false)).toThrow('exactly one');
+  expect(() => mapUserDrafts(table, ['email', 'phone', '', 'username', ''], false)).toThrow('name');
+});
+test('ignores delimiters inside quoted headers and handles ambiguous aliases conservatively', () => {
+  expect(detectDelimiter('"Company, Inc";Email;Phone\n')).toBe(';');
+  expect(suggestMapping(['Name', 'Full Name', 'EMAIL', 'Phone Number', 'User_name'])).toEqual(['name', '', 'email', 'phone', 'username']);
 });

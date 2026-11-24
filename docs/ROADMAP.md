@@ -78,7 +78,7 @@ Branch: `feature/UMA-006-export-csv`.
 
 ## UMA-007 — Import users from CSV
 
-- Require UTF-8 comma-separated CSV with exact name,username,email,phone headers.
+- Require UTF-8 CSV with a header row; support arbitrary column order, aliases, manual mapping and skipped extra columns.
 - Limit each file to 1 MB and 1,000 users; support BOM, quoting and multiline fields.
 - Show validation results before confirmation; cancel leaves data unchanged.
 - Reject the whole batch for invalid fields or duplicate username/email, including existing users.

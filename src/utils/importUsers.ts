@@ -1,11 +1,11 @@
 import { User } from '../types';
-import { normalizeUser, UserDraft, validateUser } from './userValidation';
+import { normalizeUser, UserDraft, userFields, validateUser } from './userValidation';
 
 export const MAX_CSV_BYTES = 1024 * 1024;
 export const MAX_IMPORT_USERS = 1000;
 
 // CSV records may contain quoted commas, escaped quotes and embedded newlines.
-export function parseCsv(text: string): string[][] {
+export function parseCsv(text: string, delimiter = ','): string[][] {
   const rows: string[][] = [];
   let row: string[] = [], cell = '', quoted = false, closed = false;
   const input = text.replace(/^\uFEFF/, '');
@@ -22,7 +22,7 @@ export function parseCsv(text: string): string[][] {
         if (input[i + 1] === '"') { cell += '"'; i++; }
         else { quoted = false; closed = true; }
       } else cell += char;
-    } else if (char === ',') {
+    } else if (char === delimiter) {
       row.push(cell); cell = ''; closed = false;
     } else if (char === '\n' || char === '\r') {
       if (char === '\r' && input[i + 1] === '\n') i++;
@@ -39,23 +39,75 @@ export function parseCsv(text: string): string[][] {
   return rows;
 }
 
-export function readUserDrafts(text: string, fromAppExport: boolean): UserDraft[] {
-  const [header, ...rows] = parseCsv(text);
-  if (!header || header.length !== 4 || header.join(',') !== 'name,username,email,phone') {
-    throw new Error('Expected columns in this order: name,username,email,phone. Use a comma-separated CSV file.');
+export type ColumnMapping = (keyof UserDraft | '')[];
+export type CsvTable = { header: string[]; rows: string[][] };
+
+export function detectDelimiter(text: string): string {
+  // Count separators in the first record, outside quoted fields.
+  const counts: Record<string, number> = { ',': 0, ';': 0, '\t': 0 };
+  let quoted = false;
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    if (char === '"') {
+      if (quoted && text[i + 1] === '"') i++;
+      else quoted = !quoted;
+    } else if (!quoted) {
+      if (char === '\r' || char === '\n') break;
+      if (char in counts) counts[char]++;
+    }
   }
-  if (!rows.length) throw new Error('The CSV file contains no users.');
-  return rows.map((row, index) => {
-    if (row.length !== 4) throw new Error(`Record ${index + 2}: expected four fields.`);
-    const values = row.map((value, field) => {
-      if (!fromAppExport || !value.startsWith("'")) return value;
-      const rest = value.slice(1);
-      // Reverse only prefixes inserted by this app's export, when explicitly requested.
-      // eslint-disable-next-line no-control-regex
-      return field === 3 || /^[\s\u0000-\u001f]*[=+@-]/u.test(rest) || /^[\t\r\n]/.test(rest) ? rest : value;
-    });
-    return normalizeUser({ name: values[0], username: values[1], email: values[2], phone: values[3] });
+  return Object.keys(counts).sort((a, b) => counts[b] - counts[a])[0];
+}
+
+export function readCsvTable(text: string, delimiter: string): CsvTable {
+  const [header, ...rows] = parseCsv(text, delimiter);
+  if (!header || !rows.length) throw new Error('The CSV file must contain a header and at least one user.');
+  rows.forEach((row, index) => {
+    if (row.length !== header.length) throw new Error(`Record ${index + 2}: expected ${header.length} fields, found ${row.length}. Check the delimiter.`);
   });
+  return { header, rows };
+}
+
+export function suggestMapping(header: string[]): ColumnMapping {
+  const aliases: Record<keyof UserDraft, string[]> = {
+    name: ['name', 'fullname', 'contactname'],
+    username: ['username', 'login', 'userlogin', 'handle'],
+    email: ['email', 'emailaddress', 'mail'],
+    phone: ['phone', 'telephone', 'phonenumber', 'mobile', 'mobilephone'],
+  };
+  const used = new Set<string>();
+  return header.map(label => {
+    const key = label.trim().toLowerCase().replace(/[\s_-]/g, '');
+    const field = userFields.find(field => aliases[field].includes(key) && !used.has(field));
+    if (field) used.add(field);
+    return field ?? '';
+  });
+}
+
+export function mapUserDrafts(table: CsvTable, mapping: ColumnMapping, fromAppExport: boolean): UserDraft[] {
+  for (const field of userFields) {
+    if (mapping.filter(value => value === field).length !== 1) throw new Error(`Map exactly one column to ${field}.`);
+  }
+  if (mapping.length !== table.header.length) throw new Error('Check the column mapping.');
+  return table.rows.map(row => {
+    const draft: UserDraft = { name: '', username: '', email: '', phone: '' };
+    mapping.forEach((field, index) => {
+      if (!field) return;
+      let value = row[index];
+      if (fromAppExport && value.startsWith("'")) {
+        const rest = value.slice(1);
+        // eslint-disable-next-line no-control-regex
+        if (field === 'phone' || /^[\s\u0000-\u001f]*[=+@-]/u.test(rest) || /^[\t\r\n]/.test(rest)) value = rest;
+      }
+      draft[field] = value;
+    });
+    return normalizeUser(draft);
+  });
+}
+
+export function readUserDrafts(text: string, fromAppExport: boolean): UserDraft[] {
+  const table = readCsvTable(text, detectDelimiter(text));
+  return mapUserDrafts(table, suggestMapping(table.header), fromAppExport);
 }
 
 export function validateImport(drafts: UserDraft[], existing: User[]): string[] {

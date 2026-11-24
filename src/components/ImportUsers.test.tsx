@@ -67,3 +67,26 @@ test('reports read failure and ignores a stale read after cancellation', () => {
     expect(screen.getByRole('button', { name: 'Import users' })).toBeDisabled();
   } finally { read.mockRestore(); }
 });
+
+test('lets users map arbitrary columns, preview and import', async () => {
+  const { store } = setup();
+  upload('Contact;Address;Account;Number;Company\nJana;jana@example.com;jana;00123;Acme');
+  await screen.findByRole('table', { name: 'Column mapping' });
+  expect(screen.getByLabelText('Delimiter')).toHaveValue(';');
+  const fields = ['name', 'email', 'username', 'phone'];
+  fields.forEach((field, index) => fireEvent.change(screen.getByLabelText(new RegExp(`Map column ${index + 1}:`)), { target: { value: field } }));
+  expect(screen.getByRole('table', { name: 'Import preview' })).toHaveTextContent('00123');
+  fireEvent.click(screen.getByRole('button', { name: 'Import users' }));
+  expect(store.getState().users.users[0]).toEqual({ id: 1, name: 'Jana', email: 'jana@example.com', username: 'jana', phone: '00123' });
+});
+test('allows delimiter correction and blocks duplicate mappings', async () => {
+  setup(); upload('name\tusername\temail\tphone\nJana\tjana\tjana@example.com\t00123');
+  await screen.findByRole('table', { name: 'Column mapping' });
+  expect(screen.getByLabelText('Delimiter')).toHaveValue('\t');
+  fireEvent.change(screen.getByLabelText('Delimiter'), { target: { value: ',' } });
+  expect(screen.getByRole('button', { name: 'Import users' })).toBeDisabled();
+  fireEvent.change(screen.getByLabelText('Delimiter'), { target: { value: '\t' } });
+  expect(screen.getByRole('button', { name: 'Import users' })).toBeEnabled();
+  fireEvent.change(screen.getByLabelText('Map column 2: username'), { target: { value: 'name' } });
+  expect(screen.getByRole('button', { name: 'Import users' })).toBeDisabled();
+});
