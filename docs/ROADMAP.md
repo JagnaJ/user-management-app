@@ -76,9 +76,15 @@ Branch: `feature/UMA-006-export-csv`.
 - Prefix formula-like values and all phone numbers with an apostrophe; document that CSV readers may display it literally.
 - Keep the list, filters, and unsaved drafts unchanged; show an error if download initiation fails.
 
-## Next milestone — CSV import
+## UMA-007 — Import users from CSV
 
-Define invalid-row feedback, duplicate handling, and how to handle the export's protective apostrophes before implementing import.
+- Require UTF-8 CSV with a header row; support arbitrary column order, aliases, manual mapping and skipped extra columns.
+- Limit each file to 1 MB and 1,000 users; support BOM, quoting and multiline fields.
+- Show validation results before confirmation; cancel leaves data unchanged.
+- Reject the whole batch for invalid fields or duplicate username/email, including existing users.
+- Revalidate against current state and append atomically with fresh IDs; clear filters and persist normally.
+- Explicit opt-in reverses this app's protective export apostrophes; default preserves literal input.
+- Show up to ten errors with nonblank CSV record numbers; no overwrite or partial import.
 
 ## Continuing from an existing Codespace
 

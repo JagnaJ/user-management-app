@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { validateImport } from '../utils/importUsers';
 import { User } from '../types';
 import { normalizeUser, UserDraft, validateUser } from '../utils/userValidation';
 
@@ -28,6 +29,12 @@ const userSlice = createSlice({
   name: 'users',
   initialState,
   reducers: {
+    importUsers: (state, action: PayloadAction<UserDraft[]>) => {
+      if (validateImport(action.payload, state.users).length) return;
+      let id = state.users.reduce((max, user) => Math.max(max, user.id), 0);
+      state.users.push(...action.payload.map(draft => ({ id: ++id, ...normalizeUser(draft) })));
+      state.filters = { name: '', username: '', email: '', phone: '' };
+    },
     addUser: (state, action: PayloadAction<UserDraft>) => {
       const draft = normalizeUser(action.payload);
       if (Object.keys(validateUser(draft, state.users)).length > 0) return;
@@ -52,5 +59,5 @@ const userSlice = createSlice({
   },
 });
 
-export const { setFilter, addUser, updateUser, deleteUser } = userSlice.actions;
+export const { setFilter, addUser, updateUser, deleteUser, importUsers } = userSlice.actions;
 export default userSlice.reducer;

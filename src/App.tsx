@@ -3,6 +3,7 @@ import { RootState } from './redux/store';
 import React, { useEffect, useState } from 'react';
 import AddUserForm from './components/AddUserForm';
 import UserTable from './components/UserTable';
+import ImportUsers from './components/ImportUsers';
 import ExportUsersButton from './components/ExportUsersButton';
 
 const App: React.FC = () => {
@@ -22,6 +23,7 @@ const App: React.FC = () => {
       <AddUserForm onAdded={() => setNotice({ message: 'User added' })} />
       <p role="status" aria-live="polite" aria-atomic="true">{notice?.message}</p>
       <ExportUsersButton />
+      <ImportUsers onImported={count => setNotice({ message: `${count} ${count === 1 ? 'user' : 'users'} imported` })} />
       <UserTable
         onUpdated={() => setNotice({ message: 'User updated' })}
         onDeleted={() => setNotice({ message: 'User deleted' })}
