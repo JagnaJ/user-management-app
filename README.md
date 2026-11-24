@@ -2,7 +2,7 @@
 
 A React and TypeScript application for managing your own user list, with Redux Toolkit for local state.
 
-## Current status — UMA-006
+## Current status — UMA-007
 
 Create users with the Add user form and filter the local list by name, username, email, and phone. The app does not fetch demo records or require an API.
 
@@ -18,7 +18,11 @@ Users are saved automatically in localStorage after adding, editing, or deleting
 
 Stored records are validated before loading. Invalid or unsupported data is preserved, saving is paused for that session, and an alert is shown. If browser storage is unavailable or full, the app keeps working in memory and shows a persistent warning. Failed writes are retried on the next list change. Use **Export all users (CSV)** to download `users.csv` containing all saved rows, regardless of table filters. The button is disabled when the list is empty. Unsaved form drafts are excluded. Columns: `name,username,email,phone`; internal IDs are omitted.
 
-The file uses comma delimiters, UTF-8 with a BOM, quoted fields, and CRLF record separators. Quotes, commas, and line breaks in values are escaped. Formula-like values and all phone numbers receive a leading apostrophe to encourage spreadsheet text handling; some CSV readers display that apostrophe literally. When importing into Excel, select UTF-8, a comma delimiter, and Text columns to preserve phone formatting. This is a spreadsheet-oriented export, not a lossless backup format. CSV import is not implemented yet.
+The file uses comma delimiters, UTF-8 with a BOM, quoted fields, and CRLF record separators. Quotes, commas, and line breaks in values are escaped. Formula-like values and all phone numbers receive a leading apostrophe to encourage spreadsheet text handling; some CSV readers display that apostrophe literally. When importing into Excel, select UTF-8, a comma delimiter, and Text columns to preserve phone formatting. This is a spreadsheet-oriented export, not a lossless backup format. Use **Import users** to select a UTF-8, comma-separated CSV (maximum 1 MB / 1,000 users). Headers must be exactly `name,username,email,phone` in that order. Blank lines are ignored; quoted commas, quotes, and multiline fields are supported. Record numbers in errors count nonblank CSV records, including the header.
+
+The file is checked before confirmation. All fields are required, emails must be valid, and username/email duplicates within the file or existing list block the entire import. Nothing is replaced or partially imported. Confirming appends all records with new local IDs, clears filters, and saves through the existing persistence flow. Cancel discards the preview. Storage warnings still apply if browser saving fails.
+
+For an unmodified file exported by this app, select **This file was exported by this app** to remove the protective apostrophe from phone numbers and formula-like fields. Leave it unchecked for other CSV files to preserve literal apostrophes. Do not use it on files that a spreadsheet has already transformed; the export format is not an unambiguous backup format.
 
 ## Stack
 
@@ -58,9 +62,9 @@ The agreed direction is to let users manage their own list, then add CSV import/
 - [x] **UMA-004:** Delete local users after confirmation.
 - [x] **UMA-005:** Persist validated users in browser storage.
 - [x] **UMA-006:** Export all users to CSV.
-- [ ] Add CSV import with validation and duplicate handling.
+- [x] **UMA-007:** Import CSV with validation, confirmation, and atomic duplicate rejection.
 
-CSV field rules still need to be specified before implementation. See [docs/ROADMAP.md](docs/ROADMAP.md).
+CSV rules and milestones are documented. See [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## License
 
