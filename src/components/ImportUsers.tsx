@@ -54,6 +54,8 @@ const ImportUsers: React.FC<{ onImported: (count: number) => void }> = ({ onImpo
     try { table = readCsvTable(text, delimiter); drafts = mapUserDrafts(table, mapping, fromExport); errors = validateImport(drafts, users); }
     catch (cause) { errors = [cause instanceof Error ? cause.message : 'Could not parse the CSV file.']; }
   }
+  const duplicateMapping = (index: number) => Boolean(mapping[index] && mapping.filter(field => field === mapping[index]).length > 1);
+  const missingFields = userFields.filter(field => !mapping.includes(field));
   const confirm = () => {
     if (errors.length || !drafts.length || reading) return;
     const currentErrors = validateImport(drafts, store.getState().users.users);
@@ -62,7 +64,7 @@ const ImportUsers: React.FC<{ onImported: (count: number) => void }> = ({ onImpo
     onImported(drafts.length); clear(); input.current?.focus();
   };
   return (
-    <section aria-labelledby="import-heading">
+    <section className="import-card" aria-labelledby="import-heading">
       <h2 id="import-heading">Import users</h2>
       <p id="import-help">Choose a UTF-8 CSV with a header row, then match its columns to name, username, email and phone. Column order does not matter. Up to 1 MB and 1,000 users. All fields are required. Duplicates block the entire import; existing users are never replaced.</p>
       <label htmlFor="import-file">CSV file</label>{' '}
@@ -76,10 +78,12 @@ const ImportUsers: React.FC<{ onImported: (count: number) => void }> = ({ onImpo
         <p>Check the suggested matches. Skip extra columns. Each required field must be matched once.</p>
         <table aria-label="Column mapping"><thead><tr><th>CSV column</th><th>Example</th><th>Import as</th></tr></thead>
           <tbody>{table.header.map((label, index) => <tr key={index}><td>{label || '(unnamed)'} ({index + 1})</td><td>{table?.rows[0][index]}</td><td>
-            <select aria-label={`Map column ${index + 1}: ${label}`} value={mapping[index] ?? ''} onChange={event => {
+            <select aria-invalid={duplicateMapping(index)} aria-describedby={duplicateMapping(index) ? `mapping-error-${index}` : undefined} aria-label={`Map column ${index + 1}: ${label}`} value={mapping[index] ?? ''} onChange={event => {
               const next = [...mapping]; next[index] = event.target.value as keyof UserDraft | ''; setMapping(next); setError('');
             }}><option value="">Do not import</option>{userFields.map(field => <option key={field} value={field}>{field}</option>)}</select>
+            {duplicateMapping(index) && <p className="field-error" id={`mapping-error-${index}`}>Another column also uses {mapping[index]}. Choose a different field or Do not import.</p>}
           </td></tr>)}</tbody></table>
+        {missingFields.length > 0 && <p className="field-error">Still needed: {missingFields.join(', ')}. Choose these fields in the Import as menus.</p>}
       </div>}
       {drafts.length > 0 && <div style={{ overflowX: 'auto' }}><h3>Preview (first 5 users)</h3>
         <table aria-label="Import preview"><thead><tr>{userFields.map(field => <th key={field}>{field}</th>)}</tr></thead>

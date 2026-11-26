@@ -6,7 +6,7 @@ import App from './App';
 import userReducer from './redux/userSlice';
 import { User } from './types';
 
-function renderApp(users: User[] = []) {
+function renderApp(users: User[] = [], openAdd = true) {
   const store = configureStore({
     reducer: { users: userReducer },
     preloadedState: {
@@ -18,6 +18,7 @@ function renderApp(users: User[] = []) {
   });
   const dispatch = jest.spyOn(store, 'dispatch');
   render(<Provider store={store}><App /></Provider>);
+  if (openAdd) fireEvent.click(screen.getByRole('button', { name: 'Add a user' }));
   return { store, dispatch };
 }
 
@@ -238,4 +239,17 @@ test('deletion is disabled during editing and available again after cancel', () 
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
     expect(screen.getByRole('button', { name: 'Delete Alice' })).toBeEnabled();
   } finally { confirm.mockRestore(); }
+});
+
+test('starts with the table and opens one panel at a time while preserving drafts', () => {
+  renderApp([], false);
+  expect(screen.queryByRole('textbox', { name: 'Name' })).not.toBeInTheDocument();
+  expect(screen.queryByLabelText('CSV file')).not.toBeVisible();
+  fireEvent.click(screen.getByRole('button', { name: 'Add a user' }));
+  fireEvent.change(screen.getByRole('textbox', { name: 'Name' }), { target: { value: 'Draft' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Import CSV' }));
+  expect(screen.queryByRole('textbox', { name: 'Name' })).not.toBeInTheDocument();
+  expect(screen.getByLabelText('CSV file')).toBeVisible();
+  fireEvent.click(screen.getByRole('button', { name: 'Add a user' }));
+  expect(screen.getByRole('textbox', { name: 'Name' })).toHaveValue('Draft');
 });
