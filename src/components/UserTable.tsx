@@ -46,7 +46,8 @@ const UserTable: React.FC<{ onUpdated: () => void; onDeleted: () => void }> = ({
   };
 
   return (
-    <div>
+    <section className="users-card" aria-label="User list">
+      <h2>Users</h2>
       <div className="filter-inputs">
         <input
           type="text"
@@ -88,7 +89,7 @@ const UserTable: React.FC<{ onUpdated: () => void; onDeleted: () => void }> = ({
           onCancel={closeEditor}
         />
       )}
-      <table ref={table} tabIndex={-1} aria-label="Users">
+      <div className="table-scroll"><table ref={table} tabIndex={-1} aria-label="Users">
         <thead>
           <tr>
             <th>Name</th>
@@ -125,8 +126,8 @@ const UserTable: React.FC<{ onUpdated: () => void; onDeleted: () => void }> = ({
             </tr>
           ))}
         </tbody>
-      </table>
-    </div>
+      </table></div>
+    </section>
   );
 };
 

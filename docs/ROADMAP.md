@@ -89,3 +89,9 @@ Branch: `feature/UMA-006-export-csv`.
 ## Continuing from an existing Codespace
 
 The original planning session referred to this branch name, but only `main` was published when UMA-001 was resumed. Uncommitted or unpushed Codespace changes are not visible through the repository connection. Save and inspect those changes before switching branches or pulling; do not reset or overwrite them.
+
+## UMA-008 — Table-first interface
+
+- Collapsible add/import panels preserve drafts when switching.
+- Unified typography, buttons, cards and spacing; responsive filters and scrollable tables.
+- Inline duplicate-mapping feedback with accessible error associations and missing-field guidance.

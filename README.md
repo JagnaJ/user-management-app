@@ -2,7 +2,7 @@
 
 A React and TypeScript application for managing your own user list, with Redux Toolkit for local state.
 
-## Current status — UMA-007
+## Current status — UMA-008
 
 Create users with the Add user form and filter the local list by name, username, email, and phone. The app does not fetch demo records or require an API.
 
@@ -23,6 +23,10 @@ The file uses comma delimiters, UTF-8 with a BOM, quoted fields, and CRLF record
 Comma, semicolon and tab delimiters are detected automatically and can be changed manually. Changing the delimiter resets suggested mappings. The file is checked before confirmation. All fields are required, emails must be valid, and username/email duplicates within the file or existing list block the entire import. Nothing is replaced or partially imported. Confirming appends all records with new local IDs, clears filters, and saves through the existing persistence flow. Cancel discards the preview. Storage warnings still apply if browser saving fails.
 
 For an unmodified file exported by this app, select **This file was exported by this app** to remove the protective apostrophe from phone numbers and formula-like fields. Leave it unchecked for other CSV files to preserve literal apostrophes. Do not use it on files that a spreadsheet has already transformed; the export format is not an unambiguous backup format.
+
+## Interface
+
+The user table is the default view. Use Add a user or Import CSV to expand one panel at a time; hiding a panel preserves its draft until reload (Cancel import clears the import). Shared controls, responsive filters and horizontally scrollable tables support narrow screens. Duplicate column mappings are marked beside each affected selector, with missing fields listed below.
 
 ## Stack
 
