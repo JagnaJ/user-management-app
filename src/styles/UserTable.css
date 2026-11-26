@@ -8,3 +8,5 @@ tbody tr:hover { background: #f8faff; }
 .users-card table { min-width: 680px; }
 @media (max-width: 700px) { .filter-inputs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 420px) { .filter-inputs { grid-template-columns: 1fr; } }
+
+.users-card tbody td { vertical-align: middle; }
