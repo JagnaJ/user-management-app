@@ -2,7 +2,7 @@
 
 A React and TypeScript application for managing your own user list, with Redux Toolkit for local state.
 
-## Current status — UMA-008
+## Current status — UMA-009
 
 Create users with the Add user form and filter the local list by name, username, email, and phone. The app does not fetch demo records or require an API.
 
@@ -27,6 +27,10 @@ For an unmodified file exported by this app, select **This file was exported by 
 ## Interface
 
 The user table is the default view. Use Add a user or Import CSV to expand one panel at a time; hiding a panel preserves its draft until reload (Cancel import clears the import). Shared controls, responsive filters and horizontally scrollable tables support narrow screens. Duplicate column mappings are marked beside each affected selector, with missing fields listed below.
+
+## Table navigation
+
+Click Name, Username, Email or Phone to toggle ascending/descending sorting across all filtered users. Sorting is case-insensitive and numeric-aware; stored user order is unchanged. Choose 10, 25 or 50 rows per page and navigate with Previous/Next. The range counter reflects filtered results; Clear filters resets all four filters. Filter, sort and page-size changes return to page one; deleting the last row on a page returns to the nearest available page. Navigation preferences reset on reload. CSV export still includes all users.
 
 ## Stack
 
