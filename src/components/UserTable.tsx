@@ -1,14 +1,17 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import UserForm from './UserForm';
 import '../styles/UserTable.css';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../redux/store';
 import { User } from '../types';
-import { deleteUser, setFilter } from '../redux/userSlice';
+import { deleteUser, setFilter, resetFilters } from '../redux/userSlice';
 import { Filters } from '../redux/userSlice';
 
 const UserTable: React.FC<{ onUpdated: () => void; onDeleted: () => void }> = ({ onUpdated, onDeleted }) => {
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [sort, setSort] = useState<{ key: keyof Filters; direction: 'asc' | 'desc' } | null>(null);
   const table = useRef<HTMLTableElement>(null);
   const dispatch = useDispatch<AppDispatch>();
   const { users, filters } = useSelector((state: RootState) => state.users);
@@ -38,6 +41,20 @@ const UserTable: React.FC<{ onUpdated: () => void; onDeleted: () => void }> = ({
     (filters.email === '' || user.email.toLowerCase().includes(filters.email.toLowerCase())) &&
     (filters.phone === '' || user.phone.toLowerCase().includes(filters.phone.toLowerCase()))
   );
+
+  const sortedUsers = sort ? [...filteredUsers].sort((a, b) => {
+    const comparison = a[sort.key].localeCompare(b[sort.key], 'en', { sensitivity: 'base', numeric: true });
+    return sort.direction === 'asc' ? comparison : -comparison;
+  }) : filteredUsers;
+  const pages = Math.max(1, Math.ceil(sortedUsers.length / pageSize));
+  const currentPage = Math.min(page, pages);
+  const start = (currentPage - 1) * pageSize;
+  const visibleUsers = sortedUsers.slice(start, start + pageSize);
+  useEffect(() => { setPage(1); }, [filters, pageSize, sort]);
+  useEffect(() => { setPage(previous => Math.min(previous, pages)); }, [pages]);
+  const changeSort = (key: keyof Filters) => {
+    setSort(previous => ({ key, direction: previous?.key === key && previous.direction === 'asc' ? 'desc' : 'asc' }));
+  };
 
   const editingUser = users.find(user => user.id === editingId);
   const closeEditor = () => {
@@ -83,6 +100,12 @@ const UserTable: React.FC<{ onUpdated: () => void; onDeleted: () => void }> = ({
         />
       </div>
 
+      <div className="table-controls">
+        <button type="button" disabled={!Object.values(filters).some(Boolean)} onClick={() => dispatch(resetFilters())}>Clear filters</button>
+        <label>Rows per page{' '}<select value={pageSize} onChange={event => setPageSize(Number(event.target.value))}>
+          {[10, 25, 50].map(size => <option key={size} value={size}>{size}</option>)}
+        </select></label>
+      </div>
       {editingUser && (
         <UserForm key={editingUser.id} user={editingUser}
           onSaved={() => { onUpdated(); closeEditor(); }}
@@ -92,10 +115,13 @@ const UserTable: React.FC<{ onUpdated: () => void; onDeleted: () => void }> = ({
       <div className="table-scroll"><table ref={table} tabIndex={-1} aria-label="Users">
         <thead>
           <tr>
-            <th>Name</th>
-            <th>Username</th>
-            <th>Email</th>
-            <th>Phone</th>
+            {(['name', 'username', 'email', 'phone'] as const).map(key => (
+              <th key={key} aria-sort={sort?.key === key ? (sort.direction === 'asc' ? 'ascending' : 'descending') : 'none'}>
+                <button type="button" className="sort-button" aria-label={`Sort by ${key}`} onClick={() => changeSort(key)}>
+                  {key[0].toUpperCase() + key.slice(1)} <span aria-hidden="true">{sort?.key === key ? (sort.direction === 'asc' ? '↑' : '↓') : '↕'}</span>
+                </button>
+              </th>
+            ))}
             <th>Actions</th>
           </tr>
         </thead>
@@ -107,7 +133,7 @@ const UserTable: React.FC<{ onUpdated: () => void; onDeleted: () => void }> = ({
               </td>
             </tr>
           )}
-          {filteredUsers.map(user => (
+          {visibleUsers.map(user => (
             <tr key={user.id}>
               <td>{user.name}</td>
               <td>{user.username}</td>
@@ -127,6 +153,12 @@ const UserTable: React.FC<{ onUpdated: () => void; onDeleted: () => void }> = ({
           ))}
         </tbody>
       </table></div>
+      <nav className="pagination" aria-label="User table pages">
+        <p aria-live="polite">Showing {sortedUsers.length ? start + 1 : 0}–{Math.min(start + pageSize, sortedUsers.length)} of {sortedUsers.length}{sortedUsers.length !== users.length ? ` (filtered from ${users.length})` : ''}</p>
+        <div><button type="button" disabled={currentPage === 1} onClick={() => setPage(currentPage - 1)}>Previous</button>
+          <span>Page {currentPage} of {pages}</span>
+          <button type="button" disabled={currentPage === pages} onClick={() => setPage(currentPage + 1)}>Next</button></div>
+      </nav>
     </section>
   );
 };

@@ -95,3 +95,10 @@ The original planning session referred to this branch name, but only `main` was 
 - Collapsible add/import panels preserve drafts when switching.
 - Unified typography, buttons, cards and spacing; responsive filters and scrollable tables.
 - Inline duplicate-mapping feedback with accessible error associations and missing-field guidance.
+
+## UMA-009 — Table sorting and pagination
+
+- Sort all filtered rows by name, username, email or phone in either direction without changing stored order.
+- Choose 10/25/50 rows per page; show result range and Previous/Next controls.
+- Reset page on filter/sort/page-size changes; clamp after deletions.
+- Clear all filters with one action. CSV export continues to include all users.

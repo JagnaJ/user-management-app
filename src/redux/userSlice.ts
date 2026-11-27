@@ -29,6 +29,7 @@ const userSlice = createSlice({
   name: 'users',
   initialState,
   reducers: {
+    resetFilters: state => { state.filters = { name: '', username: '', email: '', phone: '' }; },
     importUsers: (state, action: PayloadAction<UserDraft[]>) => {
       if (validateImport(action.payload, state.users).length) return;
       let id = state.users.reduce((max, user) => Math.max(max, user.id), 0);
@@ -59,5 +60,5 @@ const userSlice = createSlice({
   },
 });
 
-export const { setFilter, addUser, updateUser, deleteUser, importUsers } = userSlice.actions;
+export const { setFilter, resetFilters, addUser, updateUser, deleteUser, importUsers } = userSlice.actions;
 export default userSlice.reducer;
