@@ -11,6 +11,7 @@ tbody tr:hover { background: #f8faff; }
 
 .users-card tbody td { vertical-align: middle; }
 
+.page-size-control { display: inline-flex; align-items: center; gap: 12px; }
 .table-controls, .pagination { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin: 16px 0; }
 .pagination > div { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
 .users-card .sort-button { border: 0; padding: 4px 0; background: transparent; font: inherit; color: inherit; text-align: left; }

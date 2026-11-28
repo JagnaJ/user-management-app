@@ -102,7 +102,7 @@ const UserTable: React.FC<{ onUpdated: () => void; onDeleted: () => void }> = ({
 
       <div className="table-controls">
         <button type="button" disabled={!Object.values(filters).some(Boolean)} onClick={() => dispatch(resetFilters())}>Clear filters</button>
-        <label>Rows per page{' '}<select value={pageSize} onChange={event => setPageSize(Number(event.target.value))}>
+        <label className="page-size-control">Rows per page<select value={pageSize} onChange={event => setPageSize(Number(event.target.value))}>
           {[10, 25, 50].map(size => <option key={size} value={size}>{size}</option>)}
         </select></label>
       </div>
