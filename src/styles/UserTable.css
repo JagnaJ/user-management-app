@@ -16,3 +16,7 @@ tbody tr:hover { background: #f8faff; }
 .users-card .sort-button { border: 0; padding: 4px 0; background: transparent; font: inherit; color: inherit; text-align: left; }
 .sort-button span { margin-left: 6px; }
 .pagination p { margin: 0; }
+
+.users-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
+.users-heading h2 { margin: 0; }
+.delete-all-users { color: #b42318; }

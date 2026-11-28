@@ -34,6 +34,7 @@ const App: React.FC = () => {
       <UserTable
         onUpdated={() => setNotice({ message: 'User updated' })}
         onDeleted={() => setNotice({ message: 'User deleted' })}
+        onAllDeleted={count => setNotice({ message: `${count} ${count === 1 ? 'user' : 'users'} deleted` })}
       />
     </div>
   );

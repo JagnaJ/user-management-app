@@ -1,5 +1,5 @@
 import { createAppStore } from './store';
-import { addUser, deleteUser, setFilter, updateUser } from './userSlice';
+import { addUser, deleteUser, deleteAllUsers, setFilter, updateUser } from './userSlice';
 import { STORAGE_KEY, storageInvalid, storageUnavailable } from './userStorage';
 
 const draft = { name: 'Jana', username: 'jana', email: 'jana@example.com', phone: '+48 123' };
@@ -69,4 +69,13 @@ test('reports failed writes and retries with the complete list on the next chang
   store.dispatch(updateUser({ id: 1, ...draft, name: 'Updated' }));
   expect(store.getState().persistence.error).toBe('');
   expect(createAppStore(() => storage).getState().users.users[0].name).toBe('Updated');
+});
+
+test('bulk deletion persists an empty list across reloads', () => {
+ const storage = memoryStorage();
+ const store = createAppStore(() => storage);
+ store.dispatch(addUser(draft));
+ store.dispatch(addUser({ ...draft, username: 'other', email: 'other@example.com' }));
+ store.dispatch(deleteAllUsers());
+ expect(createAppStore(() => storage).getState().users.users).toEqual([]);
 });
