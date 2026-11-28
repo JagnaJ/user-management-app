@@ -4,10 +4,10 @@ import '../styles/UserTable.css';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../redux/store';
 import { User } from '../types';
-import { deleteUser, setFilter, resetFilters } from '../redux/userSlice';
+import { deleteUser, deleteAllUsers, setFilter, resetFilters } from '../redux/userSlice';
 import { Filters } from '../redux/userSlice';
 
-const UserTable: React.FC<{ onUpdated: () => void; onDeleted: () => void }> = ({ onUpdated, onDeleted }) => {
+const UserTable: React.FC<{ onUpdated: () => void; onDeleted: () => void; onAllDeleted: (count: number) => void }> = ({ onUpdated, onDeleted, onAllDeleted }) => {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -20,6 +20,16 @@ const UserTable: React.FC<{ onUpdated: () => void; onDeleted: () => void }> = ({
     if (!window.confirm(`Delete ${user.name} (${user.email})? This cannot be undone.`)) return;
     dispatch(deleteUser(user.id));
     onDeleted();
+    table.current?.focus();
+  };
+
+  const handleDeleteAll = () => {
+    if (!users.length || editingId !== null) return;
+    const count = users.length;
+    if (!window.confirm(`Delete all ${count} ${count === 1 ? 'user' : 'users'}? This includes users hidden by filters and on other pages. This cannot be undone.`)) return;
+    dispatch(deleteAllUsers());
+    setPage(1);
+    onAllDeleted(count);
     table.current?.focus();
   };
 
@@ -64,7 +74,10 @@ const UserTable: React.FC<{ onUpdated: () => void; onDeleted: () => void }> = ({
 
   return (
     <section className="users-card" aria-label="User list">
-      <h2>Users</h2>
+      <div className="users-heading">
+        <h2>Users</h2>
+        <button type="button" className="delete-all-users" disabled={users.length === 0 || editingId !== null} onClick={handleDeleteAll}>Delete all users</button>
+      </div>
       <div className="filter-inputs">
         <input
           type="text"

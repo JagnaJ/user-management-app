@@ -4,10 +4,10 @@ import { Provider } from 'react-redux';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import UserTable from './UserTable';
 import reducer from '../redux/userSlice';
-function setup(count = 26) {
+function setup(count = 26, onAllDeleted = jest.fn()) {
  const users = Array.from({ length: count }, (_, i) => ({ id: i + 1, name: `User ${i + 1}`, username: `u${i + 1}`, email: `u${i + 1}@example.com`, phone: `${i + 1}` }));
  const store = configureStore({ reducer: { users: reducer }, preloadedState: { users: { users, filters: { name: '', username: '', email: '', phone: '' } } } });
- render(<Provider store={store}><UserTable onUpdated={() => {}} onDeleted={() => {}} /></Provider>);
+ render(<Provider store={store}><UserTable onUpdated={() => {}} onDeleted={() => {}} onAllDeleted={onAllDeleted} /></Provider>);
  return store;
 }
 test('paginates filtered results and resets page on filters, size and clear', () => {
@@ -43,6 +43,42 @@ test('clamps page after deleting its last row and handles empty results', () => 
  expect(screen.getByText('Showing 1–10 of 10')).toBeInTheDocument();
  fireEvent.change(screen.getByLabelText('Filter by name'), { target: { value: 'missing' } });
  expect(screen.getByText('Showing 0–0 of 0 (filtered from 10)')).toBeInTheDocument();
+ expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled();
+ expect(screen.getByRole('button', { name: 'Previous' })).toBeDisabled();
+ jest.restoreAllMocks();
+});
+
+test('cancel keeps all records; confirmation deletes hidden users and clears filters', () => {
+ const onAllDeleted = jest.fn();
+ const store = setup(26, onAllDeleted);
+ const confirm = jest.spyOn(window, 'confirm').mockReturnValue(false);
+ fireEvent.change(screen.getByLabelText('Filter by name'), { target: { value: 'missing' } });
+ fireEvent.click(screen.getByRole('button', { name: 'Delete all users' }));
+ expect(confirm).toHaveBeenCalledWith('Delete all 26 users? This includes users hidden by filters and on other pages. This cannot be undone.');
+ expect(store.getState().users.users).toHaveLength(26);
+ expect(screen.getByLabelText('Filter by name')).toHaveValue('missing');
+ expect(onAllDeleted).not.toHaveBeenCalled();
+ confirm.mockReturnValue(true);
+ fireEvent.click(screen.getByRole('button', { name: 'Delete all users' }));
+ expect(store.getState().users.users).toEqual([]);
+ expect(screen.getByLabelText('Filter by name')).toHaveValue('');
+ expect(screen.getByText('No users yet.')).toBeInTheDocument();
+ expect(screen.getByText('Showing 0–0 of 0')).toBeInTheDocument();
+ expect(screen.getByRole('button', { name: 'Delete all users' })).toBeDisabled();
+ expect(screen.getByRole('table', { name: 'Users' })).toHaveFocus();
+ expect(onAllDeleted).toHaveBeenCalledWith(26);
+ jest.restoreAllMocks();
+});
+
+test('bulk deletion is disabled while editing and resets the last page', () => {
+ setup(11);
+ jest.spyOn(window, 'confirm').mockReturnValue(true);
+ fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+ fireEvent.click(screen.getByRole('button', { name: 'Edit User 11' }));
+ expect(screen.getByRole('button', { name: 'Delete all users' })).toBeDisabled();
+ fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+ fireEvent.click(screen.getByRole('button', { name: 'Delete all users' }));
+ expect(screen.getByText('Page 1 of 1')).toBeInTheDocument();
  expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled();
  expect(screen.getByRole('button', { name: 'Previous' })).toBeDisabled();
  jest.restoreAllMocks();

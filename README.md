@@ -2,7 +2,7 @@
 
 A React and TypeScript application for managing your own user list, with Redux Toolkit for local state.
 
-## Current status — UMA-009
+## Current status — UMA-010
 
 Create users with the Add user form and filter the local list by name, username, email, and phone. The app does not fetch demo records or require an API.
 
@@ -13,6 +13,8 @@ Errors are displayed next to the fields and focus moves to the first invalid inp
 Use Edit beside a row to open a prefilled form. Save changes validates and updates the same record; Cancel discards the draft. The user keeps their ID and position in the list. Username/email checks exclude the record being edited. Filters remain unchanged after editing, so an updated row may no longer match them. Only one edit form can be open at a time.
 
 Delete beside a row opens the browser confirmation prompt with the user’s name and email. Cancel keeps the record; confirming removes only that user. Filters stay unchanged, focus returns to the table, and the shared notice displays `User deleted` for four seconds. Deletion is disabled while an edit form is open. There is no undo.
+
+**Delete all users** removes the entire list, including records hidden by filters or on other pages. The confirmation shows the total count and warns that deletion cannot be undone. Cancel keeps all records. Confirming clears filters, returns to page one, focuses the table and shows the deleted count. The button is disabled for an empty list or while editing.
 
 Users are saved automatically in localStorage after adding, editing, or deleting and restored on reload. Only the user list is saved; filters and form drafts reset. Data stays in this browser on this device and is not synced or backed up. Clearing site data removes it.
 
